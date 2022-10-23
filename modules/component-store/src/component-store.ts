@@ -11,7 +11,6 @@ import {
   scheduled,
   asapScheduler,
   EMPTY,
-  ObservableInput,
   ObservedValueOf,
   OperatorFunction,
 } from 'rxjs';
@@ -228,7 +227,7 @@ export class ComponentStore<T extends object> implements OnDestroy {
     projector: (s: T) => Result,
     config?: SelectConfig
   ): Observable<Result>;
-  select<SelectorsObject extends Record<string, ObservableInput<unknown>>>(
+  select<SelectorsObject extends Record<string, Observable<unknown>>>(
     selectorsObject: SelectorsObject,
     config?: SelectConfig
   ): Observable<{
@@ -253,50 +252,19 @@ export class ComponentStore<T extends object> implements OnDestroy {
     >,
     Result,
     ProjectorFn extends (...a: unknown[]) => Result,
-    SelectorsObject extends Record<string, ObservableInput<unknown>>
+    SelectorsObject extends Record<string, Observable<unknown>>
   >(...args: Selectors): Observable<Result> {
-    const { observablesOrSelectorsObject, projector, config } =
+    const { selectorsObjectOrObservables, projector, config } =
       processSelectorArgs<Selectors, Result, ProjectorFn, SelectorsObject>(
         args
       );
+    const source$ = selectorsObjectOrObservables
+      ? combineLatest(selectorsObjectOrObservables as any)
+      : this.stateSubject$;
 
-    let observable$: Observable<Result>;
-
-    // Operators to apply to the pipe.
-    // Many 'any's because we are pushing operators manually into an array
-    // before passing them into a pipe.
-    const operators: OperatorFunction<any, unknown>[] = [];
-
-    if (config.debounce) {
-      operators.push(debounceSync());
-    }
-
-    if (projector) {
-      // where projector is provided.
-      operators.push(
-        map((projectorArgs: unknown[] | object): Result => {
-          if (Array.isArray(projectorArgs)) {
-            return projector(...projectorArgs);
-          }
-          return projector(projectorArgs);
-        })
-      );
-    }
-
-    if (
-      Array.isArray(observablesOrSelectorsObject) &&
-      observablesOrSelectorsObject.length === 0
-    ) {
-      // Just a projector that could have debounced.
-      observable$ = this.stateSubject$.pipe(...(operators as [any]));
-    } else {
-      // array of selectors or selectorsObject
-      observable$ = combineLatest(observablesOrSelectorsObject as any).pipe(
-        ...(operators as [any])
-      );
-    }
-
-    return observable$.pipe(
+    return source$.pipe(
+      config.debounce ? debounceSync() : (source$) => source$,
+      project(projector),
       distinctUntilChanged(),
       shareReplay({
         refCount: true,
@@ -395,23 +363,23 @@ function processSelectorArgs<
     Observable<unknown> | SelectConfig | ProjectorFn | SelectorsObject
   >,
   Result,
-  ProjectorFn extends (...a: unknown[]) => Result,
-  SelectorsObject extends Record<string, ObservableInput<unknown>>
+  ProjectorFn extends (...args: unknown[]) => Result,
+  SelectorsObject extends Record<string, Observable<unknown>>
 >(
   args: Selectors
-):
-  | {
-      observablesOrSelectorsObject: Observable<unknown>[];
-      projector: ProjectorFn;
-      config: Required<SelectConfig>;
-    }
-  | {
-      observablesOrSelectorsObject: SelectorsObject;
-      projector: undefined;
-      config: Required<SelectConfig>;
-    } {
+): {
+  config: Required<SelectConfig>;
+  projector:
+    | ((state: unknown) => Result)
+    | ((slices: unknown[]) => Result)
+    | undefined;
+  selectorsObjectOrObservables:
+    | SelectorsObject
+    | Observable<unknown>[]
+    | undefined;
+} {
   const selectorArgs = Array.from(args);
-  // Assign default values.
+  // Assign default values
   let config: Required<SelectConfig> = { debounce: false };
 
   // Last argument is either config or projector or selectorsObject
@@ -419,25 +387,45 @@ function processSelectorArgs<
     config = { ...config, ...selectorArgs.pop() };
   }
 
-  // At this point selectorArgs is either projector, selectors with projector or selectorsObject
+  // Signature with selectors object
   if (selectorArgs.length === 1 && typeof selectorArgs[0] !== 'function') {
-    // this is a selectorsObject
+    const selectorsObject = selectorArgs[0] as SelectorsObject;
     return {
-      observablesOrSelectorsObject: selectorArgs[0] as SelectorsObject,
-      projector: undefined,
       config,
+      projector: undefined,
+      selectorsObjectOrObservables: selectorsObject,
     };
   }
 
   const projector = selectorArgs.pop() as ProjectorFn;
 
-  // The Observables to combine, if there are any left.
-  const observables = selectorArgs as Observable<unknown>[];
+  // Signature with observables and projector
+  if (selectorArgs.length > 0) {
+    const observables = selectorArgs as Observable<unknown>[];
+    return {
+      config,
+      projector: (slices: unknown[]) => projector(...slices),
+      selectorsObjectOrObservables: observables,
+    };
+  }
+
+  // Signature with projector
   return {
-    observablesOrSelectorsObject: observables,
-    projector,
     config,
+    projector: (state: unknown) => projector(state),
+    selectorsObjectOrObservables: undefined,
   };
+}
+
+function project<Result>(
+  projector:
+    | ((state: unknown) => Result)
+    | ((slices: unknown[]) => Result)
+    | undefined
+): OperatorFunction<unknown, Result> {
+  return (
+    projector ? map(projector) : (source$) => source$
+  ) as OperatorFunction<unknown, Result>;
 }
 
 function isSelectConfig(arg: SelectConfig | unknown): arg is SelectConfig {
