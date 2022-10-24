@@ -254,12 +254,14 @@ export class ComponentStore<T extends object> implements OnDestroy {
     ProjectorFn extends (...a: unknown[]) => Result,
     SelectorsObject extends Record<string, Observable<unknown>>
   >(...args: Selectors): Observable<Result> {
-    const { selectorsObjectOrObservables, projector, config } =
-      processSelectorArgs<Selectors, Result, ProjectorFn, SelectorsObject>(
-        args
-      );
-    const source$ = selectorsObjectOrObservables
-      ? combineLatest(selectorsObjectOrObservables as any)
+    const { selectorsObjectOrArray, projector, config } = processSelectorArgs<
+      Selectors,
+      Result,
+      ProjectorFn,
+      SelectorsObject
+    >(args);
+    const source$ = selectorsObjectOrArray
+      ? combineLatest(selectorsObjectOrArray as any)
       : this.stateSubject$;
 
     return source$.pipe(
@@ -373,10 +375,7 @@ function processSelectorArgs<
     | ((state: unknown) => Result)
     | ((slices: unknown[]) => Result)
     | undefined;
-  selectorsObjectOrObservables:
-    | SelectorsObject
-    | Observable<unknown>[]
-    | undefined;
+  selectorsObjectOrArray: SelectorsObject | Observable<unknown>[] | undefined;
 } {
   const selectorArgs = Array.from(args);
   // Assign default values
@@ -393,19 +392,19 @@ function processSelectorArgs<
     return {
       config,
       projector: undefined,
-      selectorsObjectOrObservables: selectorsObject,
+      selectorsObjectOrArray: selectorsObject,
     };
   }
 
   const projector = selectorArgs.pop() as ProjectorFn;
 
-  // Signature with observables and projector
+  // Signature with selectors array and projector
   if (selectorArgs.length > 0) {
-    const observables = selectorArgs as Observable<unknown>[];
+    const selectorsArray = selectorArgs as Observable<unknown>[];
     return {
       config,
       projector: (slices: unknown[]) => projector(...slices),
-      selectorsObjectOrObservables: observables,
+      selectorsObjectOrArray: selectorsArray,
     };
   }
 
@@ -413,7 +412,7 @@ function processSelectorArgs<
   return {
     config,
     projector: (state: unknown) => projector(state),
-    selectorsObjectOrObservables: undefined,
+    selectorsObjectOrArray: undefined,
   };
 }
 
