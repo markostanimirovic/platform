@@ -21,10 +21,11 @@ export function mergeEffects(
       dispatch,
       useEffectsErrorHandler,
     }): Observable<EffectNotification> => {
-      const observable$: Observable<any> =
-        typeof sourceInstance[propertyName] === 'function'
-          ? sourceInstance[propertyName]()
-          : sourceInstance[propertyName];
+      const effectObsOrFn = sourceInstance[propertyName]() as
+        | Observable<any>
+        | (() => Observable<any>);
+      const observable$ =
+        typeof effectObsOrFn === 'function' ? effectObsOrFn() : effectObsOrFn;
 
       const effectAction$ = useEffectsErrorHandler
         ? effectsErrorHandler(observable$, globalErrorHandler)

@@ -10,9 +10,10 @@ import { provideRouterStore, routerReducer } from '@ngrx/router-store';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
 
 import { AppComponent } from './app/app.component';
+import { AppEffects } from './app/app-class.effects';
+import * as appEffects from './app/app.effects';
 
 import { environment } from './environments/environment';
-import { AppEffects } from './app/app.effects';
 
 if (environment.production) {
   enableProdMode();
@@ -37,6 +38,6 @@ bootstrapApplication(AppComponent, {
       name: 'NgRx Standalone App',
     }),
     provideRouterStore(),
-    provideEffects(AppEffects),
+    provideEffects(AppEffects, appEffects),
   ],
 });

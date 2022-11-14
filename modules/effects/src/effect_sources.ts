@@ -18,10 +18,6 @@ import {
 import { EffectsErrorHandler } from './effects_error_handler';
 import { mergeEffects } from './effects_resolver';
 import {
-  onIdentifyEffectsKey,
-  onRunEffectsKey,
-  OnRunEffects,
-  onInitEffects,
   isOnIdentifyEffects,
   isOnRunEffects,
   isOnInitEffects,
@@ -48,7 +44,11 @@ export class EffectSources extends Subject<any> {
    */
   toActions(): Observable<Action> {
     return this.pipe(
-      groupBy(getSourceForInstance),
+      groupBy((effectsInstance) =>
+        effectsInstance.constructor.name === 'Object'
+          ? effectsInstance
+          : getSourceForInstance(effectsInstance)
+      ),
       mergeMap((source$) => {
         return source$.pipe(groupBy(effectsInstance));
       }),

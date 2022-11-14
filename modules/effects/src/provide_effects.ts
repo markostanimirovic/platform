@@ -13,18 +13,21 @@ import {
 import { EffectsRunner } from './effects_runner';
 import { EffectSources } from './effect_sources';
 import { rootEffectsInit as effectsInit } from './effects_actions';
+import { CreateEffectMetadata } from './models';
 
 /**
  * Runs the provided effects.
  * Can be called at the root and feature levels.
  */
-export function provideEffects(effects: Type<unknown>[]): EnvironmentProviders;
+export function provideEffects(
+  effects: Array<Type<unknown> | Record<string, CreateEffectMetadata>>
+): EnvironmentProviders;
 /**
  * Runs the provided effects.
  * Can be called at the root and feature levels.
  */
 export function provideEffects(
-  ...effects: Type<unknown>[]
+  ...effects: Array<Type<unknown> | Record<string, CreateEffectMetadata>>
 ): EnvironmentProviders;
 /**
  * @usageNotes
@@ -53,11 +56,17 @@ export function provideEffects(
  * ```
  */
 export function provideEffects(
-  ...effects: Type<unknown>[] | Type<unknown>[][]
+  ...effects:
+    | Array<Type<unknown> | Record<string, CreateEffectMetadata>>
+    | Array<Type<unknown> | Record<string, CreateEffectMetadata>>[]
 ): EnvironmentProviders {
-  const effectsFlattened = effects.flat();
+  const effectsClassesOrObjects = effects.flat();
+  const effectsClasses = effectsClassesOrObjects.filter(
+    (e) => typeof e === 'function'
+  );
+
   return makeEnvironmentProviders([
-    effectsFlattened,
+    effectsClasses,
     {
       provide: ENVIRONMENT_INITIALIZER,
       multi: true,
@@ -73,8 +82,11 @@ export function provideEffects(
           effectsRunner.start();
         }
 
-        for (const effectsClass of effectsFlattened) {
-          const effectsInstance = inject(effectsClass);
+        for (const effectsClassOrObj of effectsClassesOrObjects) {
+          const effectsInstance =
+            typeof effectsClassOrObj === 'function'
+              ? inject(effectsClassOrObj)
+              : effectsClassOrObj;
           effectSources.addEffects(effectsInstance);
         }
 

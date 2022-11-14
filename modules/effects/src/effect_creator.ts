@@ -59,16 +59,15 @@ export function createEffect<
 >(
   source: () => R & ConditionallyDisallowActionCreator<DT, R>,
   config?: Partial<C>
-): R & CreateEffectMetadata {
-  const effect = source();
+): typeof source & CreateEffectMetadata {
   const value: EffectConfig = {
     ...DEFAULT_EFFECT_CONFIG,
     ...config, // Overrides any defaults if values are provided
   };
-  Object.defineProperty(effect, CREATE_EFFECT_METADATA_KEY, {
+  Object.defineProperty(source, CREATE_EFFECT_METADATA_KEY, {
     value,
   });
-  return effect as typeof effect & CreateEffectMetadata;
+  return source as typeof source & CreateEffectMetadata;
 }
 
 export function getCreateEffectMetadata<T extends Record<keyof T, Object>>(
