@@ -1,5 +1,5 @@
 import { excludeKeys } from './helpers';
-import { STATE_SIGNAL, StateSignal } from './state-signal';
+import { STATE_SOURCE, StateSource } from './state-source';
 import {
   EmptyFeatureResult,
   InnerSignalStore,
@@ -20,13 +20,13 @@ export function withMethods<
       StateSignals<Input['state']> &
         Input['computed'] &
         Input['methods'] &
-        StateSignal<Prettify<Input['state']>>
+        StateSource<Prettify<Input['state']>>
     >
   ) => Methods
 ): SignalStoreFeature<Input, EmptyFeatureResult & { methods: Methods }> {
   return (store) => {
     const methods = methodsFactory({
-      [STATE_SIGNAL]: store[STATE_SIGNAL],
+      [STATE_SOURCE]: store[STATE_SOURCE],
       ...store.stateSignals,
       ...store.computedSignals,
       ...store.methods,

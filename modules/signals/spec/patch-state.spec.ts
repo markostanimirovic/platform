@@ -1,5 +1,5 @@
 import { patchState, signalState, signalStore, withState } from '../src';
-import { STATE_SIGNAL } from '../src/state-signal';
+import { STATE_SOURCE } from '../src/state-source';
 
 describe('patchState', () => {
   const initialState = {
@@ -34,7 +34,7 @@ describe('patchState', () => {
           foo: 'baz',
         });
 
-        expect(state[STATE_SIGNAL]()).toEqual({
+        expect(state[STATE_SOURCE]()).toEqual({
           ...initialState,
           user: { firstName: 'Johannes', lastName: 'Schmidt' },
           foo: 'baz',
@@ -49,7 +49,7 @@ describe('patchState', () => {
           ngrx: 'rocks',
         }));
 
-        expect(state[STATE_SIGNAL]()).toEqual({
+        expect(state[STATE_SOURCE]()).toEqual({
           ...initialState,
           numbers: [1, 2, 3, 4],
           ngrx: 'rocks',
@@ -67,7 +67,7 @@ describe('patchState', () => {
           { foo: 'foo' }
         );
 
-        expect(state[STATE_SIGNAL]()).toEqual({
+        expect(state[STATE_SOURCE]()).toEqual({
           ...initialState,
           user: { firstName: 'Jovan', lastName: 'Schmidt' },
           foo: 'foo',

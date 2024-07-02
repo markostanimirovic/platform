@@ -1,7 +1,7 @@
-import { STATE_SIGNAL, StateSignal } from './state-signal';
+import { STATE_SOURCE, StateSource } from './state-source';
 
 export function getState<State extends object>(
-  stateSignal: StateSignal<State>
+  source: StateSource<State>
 ): State {
-  return stateSignal[STATE_SIGNAL]();
+  return source[STATE_SOURCE]();
 }

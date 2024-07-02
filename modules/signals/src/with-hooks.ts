@@ -1,4 +1,5 @@
-import { STATE_SIGNAL, StateSignal } from './state-signal';
+import { STATE_SOURCE } from './state-source';
+import { EVENTS_SOURCE, StoreMeta } from './store-meta';
 import {
   EmptyFeatureResult,
   SignalStoreFeature,
@@ -12,7 +13,7 @@ type HookFn<Input extends SignalStoreFeatureResult> = (
     StateSignals<Input['state']> &
       Input['computed'] &
       Input['methods'] &
-      StateSignal<Prettify<Input['state']>>
+      StoreMeta<Prettify<Input['state']>>
   >
 ) => void;
 
@@ -21,7 +22,7 @@ type HooksFactory<Input extends SignalStoreFeatureResult> = (
     StateSignals<Input['state']> &
       Input['computed'] &
       Input['methods'] &
-      StateSignal<Prettify<Input['state']>>
+      StoreMeta<Prettify<Input['state']>>
   >
 ) => {
   onInit?: () => void;
@@ -46,7 +47,8 @@ export function withHooks<Input extends SignalStoreFeatureResult>(
 ): SignalStoreFeature<Input, EmptyFeatureResult> {
   return (store) => {
     const storeProps = {
-      [STATE_SIGNAL]: store[STATE_SIGNAL],
+      [STATE_SOURCE]: store[STATE_SOURCE],
+      [EVENTS_SOURCE]: store[EVENTS_SOURCE],
       ...store.stateSignals,
       ...store.computedSignals,
       ...store.methods,

@@ -1,37 +1,55 @@
-import { Component, inject, signal } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Component, inject } from '@angular/core';
 import {
-  ComponentStore,
-  INITIAL_STATE_TOKEN,
-  provideComponentStore,
-} from '@ngrx/component-store';
-import { TestPipe } from './test.pipe';
+  dispatch,
+  getEvents,
+  signalStore,
+  withHooks,
+  withReducer,
+  withState,
+} from '@ngrx/signals';
+
+const CounterStore = signalStore(
+  withState({ count: 0 }),
+  withReducer((state, event: { type: 'increment' | 'decrement' }) => {
+    switch (event.type) {
+      case 'increment':
+        return { count: state.count + 1 };
+      case 'decrement':
+        return { count: state.count - 1 };
+      default:
+        return state;
+    }
+  }),
+  withHooks({
+    onInit(store) {
+      getEvents(store).subscribe((event) => {
+        console.log('event', event.type);
+        console.log('count', store.count());
+      });
+    },
+  })
+);
 
 @Component({
   selector: 'ngrx-root',
   standalone: true,
-  imports: [RouterModule, TestPipe],
   template: `
-    <h1>Welcome {{ title }} {{ val() }}</h1>
+    <h1>Counter</h1>
 
-    <a routerLink="/feature">Load Feature</a>
-
-    {{ 3 | test }}
-
-    <router-outlet></router-outlet>
+    <button (click)="increment()">Increment</button>
+    {{ store.count() }}
+    <button (click)="decrement()">Decrement</button>
   `,
-  providers: [
-    provideComponentStore(ComponentStore),
-    { provide: INITIAL_STATE_TOKEN, useValue: { test: true } },
-  ],
+  providers: [CounterStore],
 })
 export class AppComponent {
-  title = 'ngrx-standalone-app';
-  cs = inject(ComponentStore<{ test: number }>);
-  num = signal(1);
-  val = this.cs.selectSignal((s) => s.test);
+  readonly store = inject(CounterStore);
 
-  ngOnInit() {
-    this.num.set(2);
+  increment(): void {
+    dispatch(this.store, { type: 'increment' });
+  }
+
+  decrement(): void {
+    dispatch(this.store, { type: 'decrement' });
   }
 }

@@ -1,18 +1,18 @@
 import { isSignal, signal } from '@angular/core';
 import { withComputed, withMethods, withState } from '../src';
-import { STATE_SIGNAL } from '../src/state-signal';
+import { STATE_SOURCE } from '../src/state-source';
 import { getInitialInnerStore } from '../src/signal-store';
 
 describe('withState', () => {
   it('patches state signal and updates slices immutably', () => {
     const initialStore = getInitialInnerStore();
-    const initialState = initialStore[STATE_SIGNAL]();
+    const initialState = initialStore[STATE_SOURCE]();
 
     const store = withState({
       foo: 'bar',
       x: { y: 'z' },
     })(initialStore);
-    const state = store[STATE_SIGNAL]();
+    const state = store[STATE_SOURCE]();
 
     expect(state).toEqual({ foo: 'bar', x: { y: 'z' } });
     expect(initialState).toEqual({});
@@ -46,7 +46,7 @@ describe('withState', () => {
       foo: 'bar',
       x: { y: 'z' },
     }))(initialStore);
-    const state = store[STATE_SIGNAL]();
+    const state = store[STATE_SOURCE]();
 
     expect(state).toEqual({ foo: 'bar', x: { y: 'z' } });
     expect(store.stateSignals.foo()).toBe('bar');

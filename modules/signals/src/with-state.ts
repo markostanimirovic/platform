@@ -1,7 +1,7 @@
 import { computed } from '@angular/core';
 import { toDeepSignal } from './deep-signal';
 import { excludeKeys } from './helpers';
-import { STATE_SIGNAL } from './state-signal';
+import { STATE_SOURCE } from './state-source';
 import {
   EmptyFeatureResult,
   InnerSignalStore,
@@ -33,14 +33,14 @@ export function withState<State extends object>(
       typeof stateOrFactory === 'function' ? stateOrFactory() : stateOrFactory;
     const stateKeys = Object.keys(state);
 
-    store[STATE_SIGNAL].update((currentState) => ({
+    store[STATE_SOURCE].update((currentState) => ({
       ...currentState,
       ...state,
     }));
 
     const stateSignals = stateKeys.reduce((acc, key) => {
       const sliceSignal = computed(
-        () => (store[STATE_SIGNAL]() as Record<string, unknown>)[key]
+        () => (store[STATE_SOURCE]() as Record<string, unknown>)[key]
       );
       return { ...acc, [key]: toDeepSignal(sliceSignal) };
     }, {} as SignalsDictionary);

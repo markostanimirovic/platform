@@ -1,6 +1,6 @@
 import { Signal } from '@angular/core';
 import { DeepSignal } from './deep-signal';
-import { StateSignal } from './state-signal';
+import { StoreMeta } from './store-meta';
 import { IsKnownRecord, Prettify } from './ts-helpers';
 
 export type SignalStoreConfig = { providedIn: 'root' };
@@ -38,7 +38,7 @@ export type InnerSignalStore<
   computedSignals: ComputedSignals;
   methods: Methods;
   hooks: SignalStoreHooks;
-} & StateSignal<State>;
+} & StoreMeta<State>;
 
 export type SignalStoreFeatureResult = {
   state: object;

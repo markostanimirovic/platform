@@ -1,5 +1,6 @@
 import { DestroyRef, inject, Injectable, signal, Type } from '@angular/core';
-import { STATE_SIGNAL, StateSignal } from './state-signal';
+import { STATE_SOURCE } from './state-source';
+import { StoreMeta, EVENTS_SOURCE } from './store-meta';
 import {
   EmptyFeatureResult,
   InnerSignalStore,
@@ -10,10 +11,11 @@ import {
   SignalStoreProps,
 } from './signal-store-models';
 import { Prettify } from './ts-helpers';
+import { Subject } from 'rxjs';
 
 export function signalStore<F1 extends SignalStoreFeatureResult>(
   f1: SignalStoreFeature<EmptyFeatureResult, F1>
-): Type<SignalStoreProps<F1> & StateSignal<Prettify<F1['state']>>>;
+): Type<SignalStoreProps<F1> & StoreMeta<Prettify<F1['state']>>>;
 export function signalStore<
   F1 extends SignalStoreFeatureResult,
   F2 extends SignalStoreFeatureResult,
@@ -21,7 +23,7 @@ export function signalStore<
 >(
   f1: SignalStoreFeature<EmptyFeatureResult, F1>,
   f2: SignalStoreFeature<{} & F1, F2>
-): Type<SignalStoreProps<R> & StateSignal<Prettify<R['state']>>>;
+): Type<SignalStoreProps<R> & StoreMeta<Prettify<R['state']>>>;
 export function signalStore<
   F1 extends SignalStoreFeatureResult,
   F2 extends SignalStoreFeatureResult,
@@ -31,7 +33,7 @@ export function signalStore<
   f1: SignalStoreFeature<EmptyFeatureResult, F1>,
   f2: SignalStoreFeature<{} & F1, F2>,
   f3: SignalStoreFeature<MergeFeatureResults<[F1, F2]>, F3>
-): Type<SignalStoreProps<R> & StateSignal<Prettify<R['state']>>>;
+): Type<SignalStoreProps<R> & StoreMeta<Prettify<R['state']>>>;
 export function signalStore<
   F1 extends SignalStoreFeatureResult,
   F2 extends SignalStoreFeatureResult,
@@ -43,7 +45,7 @@ export function signalStore<
   f2: SignalStoreFeature<{} & F1, F2>,
   f3: SignalStoreFeature<MergeFeatureResults<[F1, F2]>, F3>,
   f4: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3]>, F4>
-): Type<SignalStoreProps<R> & StateSignal<Prettify<R['state']>>>;
+): Type<SignalStoreProps<R> & StoreMeta<Prettify<R['state']>>>;
 export function signalStore<
   F1 extends SignalStoreFeatureResult,
   F2 extends SignalStoreFeatureResult,
@@ -57,7 +59,7 @@ export function signalStore<
   f3: SignalStoreFeature<MergeFeatureResults<[F1, F2]>, F3>,
   f4: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3]>, F4>,
   f5: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3, F4]>, F5>
-): Type<SignalStoreProps<R> & StateSignal<Prettify<R['state']>>>;
+): Type<SignalStoreProps<R> & StoreMeta<Prettify<R['state']>>>;
 export function signalStore<
   F1 extends SignalStoreFeatureResult,
   F2 extends SignalStoreFeatureResult,
@@ -75,7 +77,7 @@ export function signalStore<
   f4: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3]>, F4>,
   f5: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3, F4]>, F5>,
   f6: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3, F4, F5]>, F6>
-): Type<SignalStoreProps<R> & StateSignal<Prettify<R['state']>>>;
+): Type<SignalStoreProps<R> & StoreMeta<Prettify<R['state']>>>;
 export function signalStore<
   F1 extends SignalStoreFeatureResult,
   F2 extends SignalStoreFeatureResult,
@@ -95,7 +97,7 @@ export function signalStore<
   f5: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3, F4]>, F5>,
   f6: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3, F4, F5]>, F6>,
   f7: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3, F4, F5, F6]>, F7>
-): Type<SignalStoreProps<R> & StateSignal<Prettify<R['state']>>>;
+): Type<SignalStoreProps<R> & StoreMeta<Prettify<R['state']>>>;
 export function signalStore<
   F1 extends SignalStoreFeatureResult,
   F2 extends SignalStoreFeatureResult,
@@ -117,7 +119,7 @@ export function signalStore<
   f6: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3, F4, F5]>, F6>,
   f7: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3, F4, F5, F6]>, F7>,
   f8: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3, F4, F5, F6, F7]>, F8>
-): Type<SignalStoreProps<R> & StateSignal<Prettify<R['state']>>>;
+): Type<SignalStoreProps<R> & StoreMeta<Prettify<R['state']>>>;
 export function signalStore<
   F1 extends SignalStoreFeatureResult,
   F2 extends SignalStoreFeatureResult,
@@ -144,12 +146,12 @@ export function signalStore<
     MergeFeatureResults<[F1, F2, F3, F4, F5, F6, F7, F8]>,
     F9
   >
-): Type<SignalStoreProps<R> & StateSignal<Prettify<R['state']>>>;
+): Type<SignalStoreProps<R> & StoreMeta<Prettify<R['state']>>>;
 
 export function signalStore<F1 extends SignalStoreFeatureResult>(
   config: SignalStoreConfig,
   f1: SignalStoreFeature<EmptyFeatureResult, F1>
-): Type<SignalStoreProps<F1> & StateSignal<Prettify<F1['state']>>>;
+): Type<SignalStoreProps<F1> & StoreMeta<Prettify<F1['state']>>>;
 export function signalStore<
   F1 extends SignalStoreFeatureResult,
   F2 extends SignalStoreFeatureResult,
@@ -158,7 +160,7 @@ export function signalStore<
   config: SignalStoreConfig,
   f1: SignalStoreFeature<EmptyFeatureResult, F1>,
   f2: SignalStoreFeature<{} & F1, F2>
-): Type<SignalStoreProps<R> & StateSignal<Prettify<R['state']>>>;
+): Type<SignalStoreProps<R> & StoreMeta<Prettify<R['state']>>>;
 export function signalStore<
   F1 extends SignalStoreFeatureResult,
   F2 extends SignalStoreFeatureResult,
@@ -169,7 +171,7 @@ export function signalStore<
   f1: SignalStoreFeature<EmptyFeatureResult, F1>,
   f2: SignalStoreFeature<{} & F1, F2>,
   f3: SignalStoreFeature<MergeFeatureResults<[F1, F2]>, F3>
-): Type<SignalStoreProps<R> & StateSignal<Prettify<R['state']>>>;
+): Type<SignalStoreProps<R> & StoreMeta<Prettify<R['state']>>>;
 export function signalStore<
   F1 extends SignalStoreFeatureResult,
   F2 extends SignalStoreFeatureResult,
@@ -182,7 +184,7 @@ export function signalStore<
   f2: SignalStoreFeature<{} & F1, F2>,
   f3: SignalStoreFeature<MergeFeatureResults<[F1, F2]>, F3>,
   f4: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3]>, F4>
-): Type<SignalStoreProps<R> & StateSignal<Prettify<R['state']>>>;
+): Type<SignalStoreProps<R> & StoreMeta<Prettify<R['state']>>>;
 export function signalStore<
   F1 extends SignalStoreFeatureResult,
   F2 extends SignalStoreFeatureResult,
@@ -197,7 +199,7 @@ export function signalStore<
   f3: SignalStoreFeature<MergeFeatureResults<[F1, F2]>, F3>,
   f4: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3]>, F4>,
   f5: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3, F4]>, F5>
-): Type<SignalStoreProps<R> & StateSignal<Prettify<R['state']>>>;
+): Type<SignalStoreProps<R> & StoreMeta<Prettify<R['state']>>>;
 export function signalStore<
   F1 extends SignalStoreFeatureResult,
   F2 extends SignalStoreFeatureResult,
@@ -216,7 +218,7 @@ export function signalStore<
   f4: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3]>, F4>,
   f5: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3, F4]>, F5>,
   f6: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3, F4, F5]>, F6>
-): Type<SignalStoreProps<R> & StateSignal<Prettify<R['state']>>>;
+): Type<SignalStoreProps<R> & StoreMeta<Prettify<R['state']>>>;
 export function signalStore<
   F1 extends SignalStoreFeatureResult,
   F2 extends SignalStoreFeatureResult,
@@ -237,7 +239,7 @@ export function signalStore<
   f5: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3, F4]>, F5>,
   f6: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3, F4, F5]>, F6>,
   f7: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3, F4, F5, F6]>, F7>
-): Type<SignalStoreProps<R> & StateSignal<Prettify<R['state']>>>;
+): Type<SignalStoreProps<R> & StoreMeta<Prettify<R['state']>>>;
 export function signalStore<
   F1 extends SignalStoreFeatureResult,
   F2 extends SignalStoreFeatureResult,
@@ -260,7 +262,7 @@ export function signalStore<
   f6: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3, F4, F5]>, F6>,
   f7: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3, F4, F5, F6]>, F7>,
   f8: SignalStoreFeature<MergeFeatureResults<[F1, F2, F3, F4, F5, F6, F7]>, F8>
-): Type<SignalStoreProps<R> & StateSignal<Prettify<R['state']>>>;
+): Type<SignalStoreProps<R> & StoreMeta<Prettify<R['state']>>>;
 export function signalStore<
   F1 extends SignalStoreFeatureResult,
   F2 extends SignalStoreFeatureResult,
@@ -288,7 +290,7 @@ export function signalStore<
     MergeFeatureResults<[F1, F2, F3, F4, F5, F6, F7, F8]>,
     F9
   >
-): Type<SignalStoreProps<R> & StateSignal<Prettify<R['state']>>>;
+): Type<SignalStoreProps<R> & StoreMeta<Prettify<R['state']>>>;
 
 export function signalStore(
   ...args: [SignalStoreConfig, ...SignalStoreFeature[]] | SignalStoreFeature[]
@@ -311,7 +313,8 @@ export function signalStore(
       const { stateSignals, computedSignals, methods, hooks } = innerStore;
       const props = { ...stateSignals, ...computedSignals, ...methods };
 
-      (this as any)[STATE_SIGNAL] = innerStore[STATE_SIGNAL];
+      (this as any)[STATE_SOURCE] = innerStore[STATE_SOURCE];
+      (this as any)[EVENTS_SOURCE] = innerStore[EVENTS_SOURCE];
 
       for (const key in props) {
         (this as any)[key] = props[key];
@@ -323,9 +326,10 @@ export function signalStore(
         onInit();
       }
 
-      if (onDestroy) {
-        inject(DestroyRef).onDestroy(onDestroy);
-      }
+      inject(DestroyRef).onDestroy(() => {
+        innerStore[EVENTS_SOURCE].complete();
+        onDestroy?.();
+      });
     }
   }
 
@@ -334,7 +338,8 @@ export function signalStore(
 
 export function getInitialInnerStore(): InnerSignalStore {
   return {
-    [STATE_SIGNAL]: signal({}),
+    [STATE_SOURCE]: signal({}),
+    [EVENTS_SOURCE]: new Subject(),
     stateSignals: {},
     computedSignals: {},
     methods: {},

@@ -2,7 +2,7 @@ import * as angular from '@angular/core';
 import { effect, isSignal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { patchState, signalState } from '../src';
-import { STATE_SIGNAL } from '../src/state-signal';
+import { STATE_SOURCE } from '../src/state-source';
 
 describe('signalState', () => {
   const initialState = {
@@ -17,7 +17,7 @@ describe('signalState', () => {
 
   it('has state signal', () => {
     const state = signalState({});
-    const stateSignal = state[STATE_SIGNAL];
+    const stateSignal = state[STATE_SOURCE];
 
     expect(isSignal(stateSignal)).toBe(true);
     expect(typeof stateSignal.update === 'function').toBe(true);
@@ -79,10 +79,10 @@ describe('signalState', () => {
   it('does not modify STATE_SIGNAL', () => {
     const state = signalState(initialState);
 
-    expect((state[STATE_SIGNAL] as any).user).toBe(undefined);
-    expect((state[STATE_SIGNAL] as any).foo).toBe(undefined);
-    expect((state[STATE_SIGNAL] as any).numbers).toBe(undefined);
-    expect((state[STATE_SIGNAL] as any).ngrx).toBe(undefined);
+    expect((state[STATE_SOURCE] as any).user).toBe(undefined);
+    expect((state[STATE_SOURCE] as any).foo).toBe(undefined);
+    expect((state[STATE_SOURCE] as any).numbers).toBe(undefined);
+    expect((state[STATE_SOURCE] as any).ngrx).toBe(undefined);
   });
 
   it('overrides Function properties if state keys have the same name', () => {
