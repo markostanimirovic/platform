@@ -48,7 +48,7 @@ export class NumbersComponent implements OnInit {
   ngOnInit(): void {
     this.logDoubledNumber(1);
     // console output: 2
-    
+
     this.logDoubledNumber(2);
     // console output: 4
   }
@@ -75,7 +75,7 @@ export class NumbersComponent implements OnInit {
     const num = signal(10);
     this.logDoubledNumber(num);
     // console output: 20
-    
+
     num.set(20);
     // console output: 40
   }
@@ -102,7 +102,7 @@ export class NumbersComponent implements OnInit {
     const num1$ = of(100, 200, 300);
     this.logDoubledNumber(num1$);
     // console output: 200, 400, 600
-    
+
     const num2$ = interval(2_000);
     this.logDoubledNumber(num2$);
     // console output: 0, 2, 4, 6, 8, 10, ... (every 2 seconds)
@@ -129,7 +129,7 @@ import { BooksService } from './books.service';
 @Component({ /* ... */ })
 export class BooksComponent implements OnInit {
   readonly #booksService = inject(BooksService);
-  
+
   readonly bookMap = signal<Record<string, Book>>({});
   readonly selectedBookId = signal<string | null>(null);
 
@@ -146,12 +146,12 @@ export class BooksComponent implements OnInit {
       })
     )
   );
-  
+
   ngOnInit(): void {
     // 👇 Load book by id whenever the `selectedBookId` value changes.
     this.loadBookById(this.selectedBookId);
   }
-  
+
   addBook(book: Book): void {
     this.bookMap.update((bookMap) => ({ ...bookMap, [book.id]: book }));
   }
@@ -196,7 +196,7 @@ export class BooksComponent implements OnInit {
       );
     })
   );
-  
+
   ngOnInit(): void {
     this.loadAllBooks();
   }
@@ -205,7 +205,7 @@ export class BooksComponent implements OnInit {
 
 ### Manual Cleanup
 
-If a reactive method needs to be cleaned up before the injector is destroyed, manual cleanup can be performed by calling the `unsubscribe` method.
+If a reactive method needs to be cleaned up before the injector is destroyed, manual cleanup can be performed by calling the `destroy` method.
 
 ```ts
 import { Component, OnInit } from '@angular/core';
@@ -219,20 +219,20 @@ export class NumbersComponent implements OnInit {
   ngOnInit(): void {
     const num1$ = interval(500);
     const num2$ = interval(1_000);
-    
+
     this.logNumber(num1$);
     this.logNumber(num2$);
-    
+
     setTimeout(() => {
-      // 👇 Clean up all reactive method subscriptions after 3 seconds.
-      this.logNumber.unsubscribe();
+      // 👇 Destroy the reactive method after 3 seconds.
+      this.logNumber.destroy();
     }, 3_000);
   }
 }
 ```
 
-When invoked, the reactive method returns a subscription.
-Using this subscription allows manual unsubscribing from a specific call, preserving the activity of other reactive method calls until the corresponding injector is destroyed.
+When invoked, the reactive method returns the object with the `destroy` method.
+This allows manual cleanup of a specific call, preserving the activity of other reactive method calls until the corresponding injector is destroyed.
 
 ```ts
 import { Component, OnInit } from '@angular/core';
@@ -246,13 +246,13 @@ export class NumbersComponent implements OnInit {
   ngOnInit(): void {
     const num1$ = interval(500);
     const num2$ = interval(1_000);
-    
-    const num1Sub = this.logNumber(num1$);
-    this.logNumber(num2$);
-    
+
+    const num1Ref = this.logNumber(num1$);
+    const num2Ref = this.logNumber(num2$);
+
     setTimeout(() => {
-      // 👇 Clean up the first reactive method subscription after 2 seconds.
-      num1Sub.unsubscribe();
+      // 👇 Destroy the first reactive method call after 2 seconds.
+      num1Ref.destroy();
     }, 2_000);
   }
 }
