@@ -56,7 +56,10 @@ export function injectDispatch<
   EventGroup extends Record<string, EventCreator<string, any>>
 >(
   events: EventGroup,
-  config?: { injector?: Injector }
+  config?: { injector?: Injector } & (
+    | { skipSelf?: boolean }
+    | { root?: boolean }
+  )
 ): Prettify<InjectDispatchResult<EventGroup>> {
   if (!config?.injector) {
     assertInInjectionContext(injectDispatch);
@@ -69,7 +72,7 @@ export function injectDispatch<
     (acc, [eventName, eventCreator]) => ({
       ...acc,
       [eventName]: (payload?: unknown) =>
-        untracked(() => dispatcher.dispatch(eventCreator(payload))),
+        untracked(() => dispatcher.dispatch(eventCreator(payload), config)),
     }),
     {} as InjectDispatchResult<EventGroup>
   );

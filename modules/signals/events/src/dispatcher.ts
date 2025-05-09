@@ -29,9 +29,26 @@ import { Events, EVENTS, ReducerEvents } from './events-service';
 export class Dispatcher {
   protected readonly reducerEvents = inject(ReducerEvents);
   protected readonly events = inject(Events);
+  protected readonly parentDispatcher = inject(Dispatcher, {
+    skipSelf: true,
+    optional: true,
+  });
 
-  dispatch(event: EventInstance<string, unknown>): void {
-    this.reducerEvents[EVENTS].next(event);
-    this.events[EVENTS].next(event);
+  dispatch(
+    event: EventInstance<string, unknown>,
+    config?: { skipSelf?: boolean } | { root?: boolean }
+  ): void;
+  dispatch(
+    event: EventInstance<string, unknown>,
+    config?: { skipSelf?: boolean; root?: boolean }
+  ): void {
+    if (this.parentDispatcher && (config?.root || config?.skipSelf)) {
+      this.parentDispatcher.dispatch(event, {
+        root: config?.root,
+      });
+    } else {
+      this.reducerEvents[EVENTS].next(event);
+      this.events[EVENTS].next(event);
+    }
   }
 }
