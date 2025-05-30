@@ -32,6 +32,7 @@ export class AppComponent {
   val = this.cs.selectSignal((s) => s.test);
 
   ngOnInit() {
+    console.log('demo');
     this.num.set(2);
   }
 }
