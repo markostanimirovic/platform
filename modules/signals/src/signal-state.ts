@@ -1,5 +1,5 @@
 import { computed, signal } from '@angular/core';
-import { DeepSignal, toDeepSignal } from './deep-signal';
+import { ResolveDeepSignal, toDeepSignal } from './deep-signal';
 import { SignalsDictionary } from './signal-store-models';
 import {
   isWritableSignal,
@@ -8,7 +8,9 @@ import {
   WritableStateSource,
 } from './state-source';
 
-export type SignalState<State extends object> = DeepSignal<StateResult<State>> &
+export type SignalState<State extends object> = ResolveDeepSignal<
+  StateResult<State>
+> &
   WritableStateSource<StateResult<State>>;
 
 export function signalState<State extends object>(

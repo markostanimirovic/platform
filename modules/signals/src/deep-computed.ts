@@ -1,8 +1,8 @@
 import { computed } from '@angular/core';
-import { DeepSignal, toDeepSignal } from './deep-signal';
+import { ResolveDeepSignal, toDeepSignal } from './deep-signal';
 
 export function deepComputed<T extends object>(
   computation: () => T
-): DeepSignal<T> {
+): ResolveDeepSignal<T> {
   return toDeepSignal(computed(computation));
 }

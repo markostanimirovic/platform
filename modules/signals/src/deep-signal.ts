@@ -1,30 +1,20 @@
-import {
-  computed,
-  isSignal,
-  Signal as NgSignal,
-  untracked,
-} from '@angular/core';
-import { IsKnownRecord } from './ts-helpers';
-
-// An extended Signal type that enables the correct typing
-// of nested signals with the `name` or `length` key.
-export interface Signal<T> extends NgSignal<T> {
-  name: unknown;
-  length: unknown;
-}
+import { computed, isSignal, Signal, untracked } from '@angular/core';
+import { NonRecord } from './ts-helpers';
 
 const DEEP_SIGNAL = Symbol('DEEP_SIGNAL');
 
-export type DeepSignal<T> = Signal<T> &
-  (IsKnownRecord<T> extends true
-    ? Readonly<{
-        [K in keyof T]: IsKnownRecord<T[K]> extends true
-          ? DeepSignal<T[K]>
-          : Signal<T[K]>;
-      }>
-    : unknown);
+type DeepSignal<T> = Signal<T> &
+  Readonly<{ [K in keyof T]: ResolveDeepSignal<T[K]> }>;
 
-export function toDeepSignal<T>(signal: Signal<T>): DeepSignal<T> {
+export type ResolveDeepSignal<T> = T extends object
+  ? T extends NonRecord
+    ? Signal<T>
+    : string extends keyof T
+    ? Signal<T>
+    : DeepSignal<T>
+  : Signal<T>;
+
+export function toDeepSignal<T>(signal: Signal<T>): ResolveDeepSignal<T> {
   return new Proxy(signal, {
     has(target: any, prop) {
       return !!this.get!(target, prop, undefined);

@@ -1,4 +1,4 @@
-type NonRecord =
+export type NonRecord =
   | Iterable<any>
   | WeakSet<any>
   | WeakMap<any, any>
